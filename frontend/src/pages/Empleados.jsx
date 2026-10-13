@@ -111,11 +111,23 @@ export default function Empleados() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => abrirEdicion(e)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Editar ${e.nombre}`}
+                    title="Editar empleado"
+                    onClick={() => abrirEdicion(e)}
+                  >
                     <Pencil className="size-4" />
                   </Button>
                   {e.activo && (
-                    <Button variant="ghost" size="icon" onClick={() => desactivar(e)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Desactivar ${e.nombre}`}
+                      title="Desactivar empleado"
+                      onClick={() => desactivar(e)}
+                    >
                       <UserX className="size-4 text-destructive" />
                     </Button>
                   )}

@@ -1,7 +1,7 @@
 // CU-09 a CU-16: fumigacion, fertilizacion, otras labores y programacion
 
 import { Check, Plus, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import Campo from "@/components/Campo"
@@ -37,11 +37,7 @@ export default function Labores() {
   const [abierto, setAbierto] = useState(false)
   const [form, setForm] = useState(VACIO)
 
-  useEffect(() => {
-    cargar()
-  }, [filtro])
-
-  function cargar() {
+  const cargar = useCallback(() => {
     const ruta = filtro === "todas" ? "/labores" : `/labores?tipo=${filtro}`
     api.get(ruta).then(setLabores).catch((e) => toast.error(e.message))
 
@@ -49,7 +45,11 @@ export default function Labores() {
       api.get("/ciclos?estado=activo").then(setCiclos).catch(() => {})
       api.get("/empleados?solo_activos=true").then(setEmpleados).catch(() => {})
     }
-  }
+  }, [filtro, esAdmin])
+
+  useEffect(() => {
+    cargar()
+  }, [cargar])
 
   async function guardar() {
     try {
@@ -100,7 +100,7 @@ export default function Labores() {
     <>
       <Encabezado titulo="Labores de campo" descripcion="Fumigaciones, abonadas, riego y podas">
         <Select value={filtro} onValueChange={setFiltro}>
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-44" aria-label="Filtrar por tipo de labor">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -137,7 +137,7 @@ export default function Labores() {
           <TableBody>
             {labores.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={esAdmin ? 8 : 7} className="py-8 text-center text-muted-foreground">
                   No hay labores registradas.
                 </TableCell>
               </TableRow>
@@ -159,10 +159,22 @@ export default function Labores() {
                   <TableCell className="text-right">
                     {l.estado === "programada" && (
                       <>
-                        <Button variant="ghost" size="icon" onClick={() => ejecutar(l)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Marcar labor de ${l.tipo} como ejecutada`}
+                          title="Marcar como ejecutada"
+                          onClick={() => ejecutar(l)}
+                        >
                           <Check className="size-4 text-primary" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => cancelar(l)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Cancelar labor de ${l.tipo}`}
+                          title="Cancelar labor"
+                          onClick={() => cancelar(l)}
+                        >
                           <X className="size-4 text-destructive" />
                         </Button>
                       </>
@@ -182,9 +194,9 @@ export default function Labores() {
         descripcion="Deja la fecha de ejecucion vacia para dejarla solo programada."
         alGuardar={guardar}
       >
-        <Campo etiqueta="Ciclo">
+        <Campo etiqueta="Ciclo" id="labor-ciclo">
           <Select value={form.ciclo_id} onValueChange={(v) => setForm({ ...form, ciclo_id: v })}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="labor-ciclo" aria-label="Ciclo" className="w-full">
               <SelectValue placeholder="Selecciona un ciclo activo" />
             </SelectTrigger>
             <SelectContent>
@@ -197,9 +209,9 @@ export default function Labores() {
           </Select>
         </Campo>
 
-        <Campo etiqueta="Empleado responsable">
+        <Campo etiqueta="Empleado responsable" id="labor-empleado">
           <Select value={form.empleado_id} onValueChange={(v) => setForm({ ...form, empleado_id: v })}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="labor-empleado" aria-label="Empleado responsable" className="w-full">
               <SelectValue placeholder="Selecciona un empleado" />
             </SelectTrigger>
             <SelectContent>
@@ -212,9 +224,9 @@ export default function Labores() {
           </Select>
         </Campo>
 
-        <Campo etiqueta="Tipo de labor">
+        <Campo etiqueta="Tipo de labor" id="labor-tipo">
           <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v })}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="labor-tipo" aria-label="Tipo de labor" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

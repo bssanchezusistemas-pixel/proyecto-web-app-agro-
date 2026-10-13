@@ -113,6 +113,13 @@ export default function Cultivos() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {cultivos.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                      Todavia no hay cultivos registrados.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {cultivos.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.nombre}</TableCell>
@@ -125,10 +132,22 @@ export default function Cultivos() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => abrir("cultivo", c)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar cultivo ${c.nombre}`}
+                        title="Editar cultivo"
+                        onClick={() => abrir("cultivo", c)}
+                      >
                         <Pencil className="size-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => eliminar("cultivo", c)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Desactivar cultivo ${c.nombre}`}
+                        title="Desactivar cultivo"
+                        onClick={() => eliminar("cultivo", c)}
+                      >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -157,10 +176,17 @@ export default function Cultivos() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {lotes.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                      Todavia no hay lotes registrados.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {lotes.map((l) => (
                   <TableRow key={l.id}>
                     <TableCell className="font-medium">{l.nombre}</TableCell>
-                    <TableCell>{l.cultivo?.nombre}</TableCell>
+                    <TableCell>{l.cultivo?.nombre || "-"}</TableCell>
                     <TableCell>{l.ubicacion || "-"}</TableCell>
                     <TableCell>{Number(l.area_hectareas)} ha</TableCell>
                     <TableCell>
@@ -169,10 +195,22 @@ export default function Cultivos() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => abrir("lote", l)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar lote ${l.nombre}`}
+                        title="Editar lote"
+                        onClick={() => abrir("lote", l)}
+                      >
                         <Pencil className="size-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => eliminar("lote", l)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Desactivar lote ${l.nombre}`}
+                        title="Desactivar lote"
+                        onClick={() => eliminar("lote", l)}
+                      >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -219,12 +257,12 @@ export default function Cultivos() {
           etiqueta="Nombre" id="lote-nombre" value={form.nombre || ""}
           onChange={(e) => setForm({ ...form, nombre: e.target.value })} required
         />
-        <Campo etiqueta="Cultivo">
+        <Campo etiqueta="Cultivo" id="lote-cultivo">
           <Select
             value={form.cultivo_id || ""}
             onValueChange={(v) => setForm({ ...form, cultivo_id: v })}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="lote-cultivo" aria-label="Cultivo" className="w-full">
               <SelectValue placeholder="Selecciona un cultivo" />
             </SelectTrigger>
             <SelectContent>

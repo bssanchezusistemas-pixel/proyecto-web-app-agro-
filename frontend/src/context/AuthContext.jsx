@@ -8,13 +8,10 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null)
-  const [cargando, setCargando] = useState(true)
+  const [cargando, setCargando] = useState(() => Boolean(leerToken()))
 
   useEffect(() => {
-    if (!leerToken()) {
-      setCargando(false)
-      return
-    }
+    if (!leerToken()) return
     api
       .get("/auth/yo")
       .then(setUsuario)
@@ -23,8 +20,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function entrar(email, password) {
-    await iniciarSesion(email, password)
-    setUsuario(await api.get("/auth/yo"))
+    const datos = await iniciarSesion(email, password)
+    setUsuario(datos?.usuario || (await api.get("/auth/yo")))
   }
 
   function salir() {

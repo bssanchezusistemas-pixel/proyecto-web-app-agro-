@@ -11,7 +11,9 @@ export default function Modal({ abierto, alCerrar, titulo, descripcion, alGuarda
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{titulo}</DialogTitle>
-          {descripcion && <DialogDescription>{descripcion}</DialogDescription>}
+          <DialogDescription className={descripcion ? "" : "sr-only"}>
+            {descripcion || `Formulario de ${titulo}`}
+          </DialogDescription>
         </DialogHeader>
 
         <form

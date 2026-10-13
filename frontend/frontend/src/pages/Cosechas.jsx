@@ -1,7 +1,7 @@
 // CU-17 a CU-19: registrar cosecha y calcular kilaje
 
 import { Plus, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import Campo from "@/components/Campo"
@@ -29,17 +29,17 @@ export default function Cosechas() {
   const [abierto, setAbierto] = useState(false)
   const [form, setForm] = useState(VACIO)
 
-  useEffect(() => {
-    cargar()
-  }, [])
-
-  function cargar() {
+  const cargar = useCallback(() => {
     api.get("/cosechas").then(setCosechas).catch((e) => toast.error(e.message))
     if (esAdmin) {
       api.get("/ciclos?estado=activo").then(setCiclos).catch(() => {})
       api.get("/empleados?solo_activos=true").then(setEmpleados).catch(() => {})
     }
-  }
+  }, [esAdmin])
+
+  useEffect(() => {
+    cargar()
+  }, [cargar])
 
   async function guardar() {
     try {
@@ -98,7 +98,7 @@ export default function Cosechas() {
           <TableBody>
             {cosechas.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={esAdmin ? 6 : 5} className="py-8 text-center text-muted-foreground">
                   No hay cosechas registradas.
                 </TableCell>
               </TableRow>
@@ -114,7 +114,13 @@ export default function Cosechas() {
                 <TableCell className="text-muted-foreground">{c.observaciones || "-"}</TableCell>
                 {esAdmin && (
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => eliminar(c)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Eliminar cosecha del ${c.fecha}`}
+                      title="Eliminar cosecha"
+                      onClick={() => eliminar(c)}
+                    >
                       <Trash2 className="size-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -132,9 +138,9 @@ export default function Cosechas() {
         descripcion="El sistema verifica el periodo de carencia antes de guardar."
         alGuardar={guardar}
       >
-        <Campo etiqueta="Ciclo">
+        <Campo etiqueta="Ciclo" id="cosecha-ciclo">
           <Select value={form.ciclo_id} onValueChange={(v) => setForm({ ...form, ciclo_id: v })}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="cosecha-ciclo" aria-label="Ciclo" className="w-full">
               <SelectValue placeholder="Selecciona un ciclo activo" />
             </SelectTrigger>
             <SelectContent>
@@ -147,9 +153,9 @@ export default function Cosechas() {
           </Select>
         </Campo>
 
-        <Campo etiqueta="Recolector">
+        <Campo etiqueta="Recolector" id="cosecha-empleado">
           <Select value={form.empleado_id} onValueChange={(v) => setForm({ ...form, empleado_id: v })}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="cosecha-empleado" aria-label="Recolector" className="w-full">
               <SelectValue placeholder="Selecciona un empleado" />
             </SelectTrigger>
             <SelectContent>

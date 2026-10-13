@@ -91,6 +91,8 @@ WSGI_APPLICATION = "agro_config.wsgi.application"
 # ==============================================================================
 # Configuración de Base de Datos (Supabase PostgreSQL / Respaldo SQLite)
 # ==============================================================================
+import sys
+
 DATABASE_URL = (
     os.getenv("DATABASE_URL")
     or os.getenv("DIRECT_URL")
@@ -112,7 +114,14 @@ elif os.getenv("VERCEL") and not DATABASE_URL:
 DB_HOST = os.getenv("DB_HOST", "").strip()
 DB_PASSWORD = os.getenv("DB_PASSWORD", "").strip()
 
-if DATABASE_URL and "tu-proyecto" not in DATABASE_URL:
+if "test" in sys.argv:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+elif DATABASE_URL and "tu-proyecto" not in DATABASE_URL:
     # 1. Conexión mediante URI de Supabase (DATABASE_URL)
     DATABASES = {
         "default": dj_database_url.parse(

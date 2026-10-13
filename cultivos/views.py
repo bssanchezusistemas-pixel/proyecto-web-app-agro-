@@ -17,7 +17,7 @@ from django.contrib.auth.models import User
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -43,7 +43,14 @@ TOKEN_MAX_AGE = 60 * 60 * 24 * 7  # 7 días
 
 def asegurar_usuarios_por_defecto() -> None:
     """Crea los usuarios por defecto (administrador y operario) si no existen."""
-    if not User.objects.filter(username="admin@cultivos.com").exists():
+    cuentas = ("admin@cultivos.com", "operario@cultivos.com", "empleado@cultivos.com")
+    existentes = set(
+        User.objects.filter(username__in=cuentas).values_list("username", flat=True)
+    )
+    if len(existentes) == len(cuentas):
+        return
+
+    if "admin@cultivos.com" not in existentes:
         admin_user = User(
             username="admin@cultivos.com",
             email="admin@cultivos.com",
@@ -55,7 +62,7 @@ def asegurar_usuarios_por_defecto() -> None:
         admin_user.set_password("admin123")
         admin_user.save()
 
-    if not User.objects.filter(username="operario@cultivos.com").exists():
+    if "operario@cultivos.com" not in existentes:
         op_user = User(
             username="operario@cultivos.com",
             email="operario@cultivos.com",
@@ -67,7 +74,7 @@ def asegurar_usuarios_por_defecto() -> None:
         op_user.set_password("operario123")
         op_user.save()
 
-    if not User.objects.filter(username="empleado@cultivos.com").exists():
+    if "empleado@cultivos.com" not in existentes:
         emp_user = User(
             username="empleado@cultivos.com",
             email="empleado@cultivos.com",
@@ -324,15 +331,25 @@ def auth_login(request: HttpRequest) -> JsonResponse:
     if not username or not password:
         return respuesta_error("Debe ingresar correo y contraseña.", status=400)
 
-    usuario = (
-        User.objects.filter(username__iexact=username).first()
-        or User.objects.filter(email__iexact=username).first()
-    )
+    usuario = User.objects.filter(
+        Q(username__iexact=username) | Q(email__iexact=username)
+    ).first()
     if not usuario or not usuario.is_active or not usuario.check_password(password):
         return respuesta_error("Correo o contraseña incorrectos.", status=401)
 
     token = generar_token(usuario)
-    return JsonResponse({"access_token": token, "token_type": "bearer"})
+    rol = "administrador" if (usuario.is_staff or usuario.is_superuser) else "operario"
+    nombre = usuario.get_full_name().strip() or usuario.first_name or usuario.username
+    return JsonResponse({
+        "access_token": token,
+        "token_type": "bearer",
+        "usuario": {
+            "id": usuario.id,
+            "nombre": nombre,
+            "email": usuario.email or usuario.username,
+            "rol": rol,
+        },
+    })
 
 
 @csrf_exempt
@@ -966,12 +983,17 @@ def reportes_ciclos(request: HttpRequest) -> JsonResponse:
     if request.method != "GET":
         return respuesta_error("Método no permitido.", status=405)
 
-    ciclos = CicloProductivo.objects.select_related("lote", "cultivo", "responsable").all()
+    ciclos = (
+        CicloProductivo.objects.select_related("lote", "cultivo", "responsable")
+        .prefetch_related("labores", "cosechas")
+        .all()
+    )
     resultado = []
     for c in ciclos:
-        total_labores = c.labores.exclude(estado="cancelada").count()
-        costo_total = round(c.costo_total_labores(), 2)
-        kilos = round(c.kilaje_total(), 2)
+        labores_validas = [l for l in c.labores.all() if l.estado != "cancelada"]
+        total_labores = len(labores_validas)
+        costo_total = round(sum(float(l.costo) for l in labores_validas), 2)
+        kilos = round(sum(float(cos.kilos) for cos in c.cosechas.all()), 2)
         resultado.append({
             "ciclo_id": str(c.id),
             "lote": c.lote.nombre,

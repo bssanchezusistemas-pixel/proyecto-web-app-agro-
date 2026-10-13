@@ -56,7 +56,7 @@ export default function Reportes() {
       </Encabezado>
 
       <Tabs defaultValue="ciclos">
-        <TabsList>
+        <TabsList className="max-w-full overflow-x-auto">
           <TabsTrigger value="ciclos">Por ciclo</TabsTrigger>
           <TabsTrigger value="costos">Costos</TabsTrigger>
           <TabsTrigger value="proximas">Proximas labores</TabsTrigger>
@@ -77,6 +77,13 @@ export default function Reportes() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {porCiclo.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                      No hay ciclos registrados.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {porCiclo.map((c) => (
                   <TableRow key={c.ciclo_id}>
                     <TableCell className="font-medium">{c.lote}</TableCell>
@@ -97,21 +104,25 @@ export default function Reportes() {
         </TabsContent>
 
         <TabsContent value="costos" className="mt-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {costos.map((c) => (
-              <Card key={c.tipo}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium capitalize text-muted-foreground">
-                    {c.tipo}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-semibold">{PESOS.format(Number(c.costo_total))}</p>
-                  <p className="text-sm text-muted-foreground">{c.cantidad} labores</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {costos.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No hay costos registrados.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {costos.map((c) => (
+                <Card key={c.tipo}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium capitalize text-muted-foreground">
+                      {c.tipo}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-semibold">{PESOS.format(Number(c.costo_total))}</p>
+                    <p className="text-sm text-muted-foreground">{c.cantidad} labores</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="proximas" className="mt-4">
@@ -161,6 +172,13 @@ export default function Reportes() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {historial.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                      No hay historial de labores registrado.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {historial.map((h, i) => (
                   <TableRow key={i}>
                     <TableCell>{h.Fecha}</TableCell>

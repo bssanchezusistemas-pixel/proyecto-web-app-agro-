@@ -63,8 +63,14 @@ export default function Ciclos() {
   }
 
   function diasRestantes(ciclo) {
-    const dias = Math.ceil((new Date(ciclo.fecha_fin_estimada) - new Date()) / 86400000)
     if (ciclo.estado === "cerrado") return "-"
+    const dias =
+      typeof ciclo.dias_restantes === "number"
+        ? ciclo.dias_restantes
+        : Math.round(
+            (new Date(`${ciclo.fecha_fin_estimada}T00:00:00`) - new Date(`${HOY}T00:00:00`)) /
+              86400000
+          )
     return dias < 0 ? `${Math.abs(dias)} de retraso` : `${dias} dias`
   }
 
@@ -129,9 +135,9 @@ export default function Ciclos() {
         descripcion="La fecha de cosecha se calcula con los dias de ciclo del cultivo."
         alGuardar={iniciar}
       >
-        <Campo etiqueta="Lote">
+        <Campo etiqueta="Lote" id="ciclo-lote">
           <Select value={form.lote_id} onValueChange={(v) => setForm({ ...form, lote_id: v })}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="ciclo-lote" aria-label="Lote" className="w-full">
               <SelectValue placeholder="Selecciona un lote" />
             </SelectTrigger>
             <SelectContent>

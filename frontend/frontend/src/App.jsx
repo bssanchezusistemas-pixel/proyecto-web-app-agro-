@@ -1,18 +1,20 @@
 // Rutas de la aplicacion
 
+import { lazy } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 
 import Layout from "@/components/Layout"
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider, useAuth } from "@/context/AuthContext"
-import Ciclos from "@/pages/Ciclos"
-import Cosechas from "@/pages/Cosechas"
-import Cultivos from "@/pages/Cultivos"
-import Empleados from "@/pages/Empleados"
-import Labores from "@/pages/Labores"
 import Login from "@/pages/Login"
 import Panel from "@/pages/Panel"
-import Reportes from "@/pages/Reportes"
+
+const Ciclos = lazy(() => import("@/pages/Ciclos"))
+const Cosechas = lazy(() => import("@/pages/Cosechas"))
+const Cultivos = lazy(() => import("@/pages/Cultivos"))
+const Empleados = lazy(() => import("@/pages/Empleados"))
+const Labores = lazy(() => import("@/pages/Labores"))
+const Reportes = lazy(() => import("@/pages/Reportes"))
 
 function SoloAdmin({ children }) {
   const { esAdmin } = useAuth()

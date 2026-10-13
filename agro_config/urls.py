@@ -21,7 +21,12 @@ def serve_spa_asset(_request, asset_path: str):
     if not str(target).startswith(str(FRONTEND_DIST.resolve())) or not target.is_file():
         return HttpResponse(status=404)
     content_type, _ = mimetypes.guess_type(str(target))
-    return FileResponse(open(target, "rb"), content_type=content_type or "application/octet-stream")
+    response = FileResponse(open(target, "rb"), content_type=content_type or "application/octet-stream")
+    if asset_path.startswith("assets/"):
+        response["Cache-Control"] = "public, max-age=31536000, immutable"
+    else:
+        response["Cache-Control"] = "public, max-age=86400"
+    return response
 
 
 def serve_spa_index(_request):
