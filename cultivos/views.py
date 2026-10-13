@@ -67,6 +67,19 @@ def asegurar_usuarios_por_defecto() -> None:
         op_user.set_password("operario123")
         op_user.save()
 
+    if not User.objects.filter(username="empleado@cultivos.com").exists():
+        emp_user = User(
+            username="empleado@cultivos.com",
+            email="empleado@cultivos.com",
+            first_name="Empleado de Campo",
+            is_staff=False,
+            is_superuser=False,
+            is_active=True,
+        )
+        emp_user.set_password("empleado123")
+        emp_user.save()
+
+
 
 def generar_token(usuario: User) -> str:
     payload = {
