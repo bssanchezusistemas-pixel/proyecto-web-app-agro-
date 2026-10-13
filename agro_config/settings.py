@@ -91,7 +91,24 @@ WSGI_APPLICATION = "agro_config.wsgi.application"
 # ==============================================================================
 # Configuración de Base de Datos (Supabase PostgreSQL / Respaldo SQLite)
 # ==============================================================================
-DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DATABASE_URL = (
+    os.getenv("DATABASE_URL")
+    or os.getenv("DIRECT_URL")
+    or os.getenv("POSTGRES_URL")
+    or ""
+).strip().strip('"').strip("'")
+
+if "HxVs13Gr@@" in DATABASE_URL or "HxVs13Gr@aws-0" in DATABASE_URL:
+    DATABASE_URL = (
+        "postgresql://postgres.caocarwtlqzacqvjlmel:HxVs13Gr123"
+        "@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+    )
+elif os.getenv("VERCEL") and not DATABASE_URL:
+    DATABASE_URL = (
+        "postgresql://postgres.caocarwtlqzacqvjlmel:HxVs13Gr123"
+        "@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+    )
+
 DB_HOST = os.getenv("DB_HOST", "").strip()
 DB_PASSWORD = os.getenv("DB_PASSWORD", "").strip()
 
@@ -100,7 +117,7 @@ if DATABASE_URL and "tu-proyecto" not in DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=600,
+            conn_max_age=0 if os.getenv("VERCEL") else 600,
             ssl_require=True,
         )
     }

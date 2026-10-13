@@ -4,11 +4,22 @@ Expone el panel administrativo y todos los endpoints REST (/api/...) consumidos 
 """
 
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, re_path
 
 from cultivos import views
 
+
+def api_root(_request):
+    return JsonResponse({
+        "status": "ok",
+        "servicio": "API Sistema de Gestión de Cultivos (Django + Supabase)",
+        "frontend_url": "https://proyecto-web-app-agro-frontend.vercel.app",
+    })
+
+
 urlpatterns = [
+    path("", api_root, name="api_root"),
     path("admin/", admin.site.urls),
 
     # Autenticación
