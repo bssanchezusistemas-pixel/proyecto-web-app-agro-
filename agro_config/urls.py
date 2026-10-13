@@ -1,16 +1,33 @@
 """
 Configuración de URLs de agro_config.
-Expone el panel administrativo y todos los endpoints REST (/api/...) consumidos por el frontend React.
+Expone el panel administrativo, todos los endpoints REST (/api/...) y sirve el SPA de React (frontend_dist).
 """
 
+import mimetypes
+from pathlib import Path
+
 from django.contrib import admin
-from django.http import JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.urls import path, re_path
 
 from cultivos import views
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIST = BASE_DIR / "frontend_dist"
 
-def api_root(_request):
+
+def serve_spa_asset(_request, asset_path: str):
+    target = (FRONTEND_DIST / asset_path).resolve()
+    if not str(target).startswith(str(FRONTEND_DIST.resolve())) or not target.is_file():
+        return HttpResponse(status=404)
+    content_type, _ = mimetypes.guess_type(str(target))
+    return FileResponse(open(target, "rb"), content_type=content_type or "application/octet-stream")
+
+
+def serve_spa_index(_request):
+    index_file = FRONTEND_DIST / "index.html"
+    if index_file.is_file():
+        return HttpResponse(index_file.read_text(encoding="utf-8"), content_type="text/html; charset=utf-8")
     return JsonResponse({
         "status": "ok",
         "servicio": "API Sistema de Gestión de Cultivos (Django + Supabase)",
@@ -19,7 +36,6 @@ def api_root(_request):
 
 
 urlpatterns = [
-    path("", api_root, name="api_root"),
     path("admin/", admin.site.urls),
 
     # Autenticación
@@ -58,4 +74,10 @@ urlpatterns = [
     re_path(r"^api/reportes/historial/?$", views.reportes_historial, name="api_reportes_historial"),
     re_path(r"^api/reportes/exportar/csv/?$", views.reportes_exportar_csv, name="api_reportes_exportar_csv"),
     re_path(r"^api/reportes/exportar/excel/?$", views.reportes_exportar_excel, name="api_reportes_exportar_excel"),
+
+    # Archivos estáticos del Frontend compilado (React + Vite)
+    re_path(r"^(?P<asset_path>assets/.+|favicon\.svg|icons\.svg)$", serve_spa_asset, name="spa_assets"),
+
+    # Rutas del Frontend SPA (React Router)
+    re_path(r"^(?:login|empleados|cultivos|ciclos|labores|cosechas|reportes)?/?$", serve_spa_index, name="spa_index"),
 ]
