@@ -42,3 +42,8 @@ env/
 # Base de datos local temporal
 *.sqlite3
 *.db
+
+# Frontend / Node / Vercel
+node_modules/
+.vercel/
+
